@@ -168,7 +168,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 			"ip_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				MaxItems: 1,
+				MaxItems: 8,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -184,6 +184,12 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"subresource_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"member_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
@@ -748,12 +754,13 @@ func expandPrivateEndpointIPConfigurations(input []interface{}) *[]network.Priva
 		privateIPAddress := v["private_ip_address"].(string)
 		subResourceName := v["subresource_name"].(string)
 		name := v["name"].(string)
+		MemberName := v["member_name"].(string)
 		result := network.PrivateEndpointIPConfiguration{
 			Name: utils.String(name),
 			PrivateEndpointIPConfigurationProperties: &network.PrivateEndpointIPConfigurationProperties{
 				PrivateIPAddress: utils.String(privateIPAddress),
 				GroupID:          utils.String(subResourceName),
-				MemberName:       utils.String(subResourceName),
+				MemberName:       utils.String(MemberName),
 			},
 		}
 		results = append(results, result)
@@ -773,6 +780,7 @@ func flattenPrivateEndpointIPConfigurations(ipConfigurations *[]network.PrivateE
 			"name":               item.Name,
 			"private_ip_address": item.PrivateIPAddress,
 			"subresource_name":   item.GroupID,
+			"member_name":        item.MemberName,
 		})
 	}
 
